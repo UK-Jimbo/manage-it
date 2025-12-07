@@ -97,6 +97,15 @@ export async function getUserFromSession() {
         "Authentication service is currently unavailable. Please try again later."
       );
     }
+    if (
+      error instanceof Error &&
+      (error.message.includes("SQLTransientConnectionException") ||
+       error.message.includes("Connection is not available"))
+    ) {
+      throw new Error(
+        "Database connection failed. Please check if the database is running and try again."
+      );
+    }
     throw error;
   }
 }
