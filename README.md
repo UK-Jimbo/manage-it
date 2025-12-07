@@ -35,6 +35,8 @@ This project demonstrates a production-quality, self-hosted authentication found
 
     _Wait for containers to be healthy._
 
+    **Note on Services**: The `db` service runs a single PostgreSQL database instance. The `supertokens` service is the SuperTokens authentication backend, which connects to the same database. The image name `supertokens/supertokens-postgresql` indicates it's configured for PostgreSQL, but it doesn't create a separate database—both services share the one Postgres container.
+
 3.  **Initialize Database**:
     The `docker/init-schemas.sql` script is automatically mounted to the Postgres container and runs on first startup. It creates the `supertokens` and `app` schemas.
 
