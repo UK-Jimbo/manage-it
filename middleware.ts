@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSessionForServer } from "./lib/auth";
+import { PROTECTED_PATHS } from "./lib/protected-paths";
 
 export async function middleware(request: NextRequest) {
-  if (
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/account")
-  ) {
+  const pathname = request.nextUrl.pathname;
+
+  // Check if the current path is protected
+  const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
+
+  if (isProtected) {
     // We can't use `getSessionForServer` directly in middleware because it uses `cookies()` which is for Server Components/Actions.
     // In middleware, we read cookies from `request.cookies`.
     // Also `supertokens-node` session verification in middleware is tricky because it might need to refresh tokens which requires writing to response.
@@ -35,5 +37,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/account/:path*"],
+  matcher: ["/:path*"],
 };

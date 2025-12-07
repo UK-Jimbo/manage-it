@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "pnpm run generate-protected-paths && next dev --turbopack",
+    "build": "pnpm run generate-protected-paths && next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate-protected-paths": "node scripts/generate-protected-paths.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
