@@ -100,7 +100,7 @@ export async function getUserFromSession() {
     if (
       error instanceof Error &&
       (error.message.includes("SQLTransientConnectionException") ||
-       error.message.includes("Connection is not available"))
+        error.message.includes("Connection is not available"))
     ) {
       throw new Error(
         "Database connection failed. Please check if the database is running and try again."

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -17,23 +17,38 @@ export default function Account() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/user')
-      .then(res => {
+    fetch("/api/user")
+      .then((res) => {
         if (res.ok) {
           return res.json();
         } else {
-          throw new Error('Failed to fetch user data');
+          throw new Error("Failed to fetch user data");
         }
       })
-      .then(d => {
+      .then((d) => {
         if (d.error) {
-          toast.error(d.error, { duration: 5000, style: { background: '#fee2e2', color: '#991b1b', border: '1px solid #dc2626' } });
+          toast.error(d.error, {
+            duration: 5000,
+            style: {
+              background: "var(--error-toast-bg)",
+              color: "var(--error-toast-color)",
+            },
+          });
         } else {
           setData(d);
         }
       })
       .catch(() => {
-        toast.error('Failed to load user data. Please try refreshing the page.', { duration: 5000, style: { background: '#fee2e2', color: '#991b1b', border: '1px solid #dc2626' } });
+        toast.error(
+          "Failed to load user data. Please try refreshing the page.",
+          {
+            duration: 5000,
+            style: {
+              background: "var(--error-toast-bg)",
+              color: "var(--error-toast-color)",
+            },
+          }
+        );
       })
       .finally(() => setLoading(false));
   }, []);
