@@ -1,108 +1,127 @@
-# Next.js + Shadcn UI + Tailwind CSS DevContainer Template
+# Project Manager - Self-Hosted Auth Foundation
 
-A ready-to-use development environment template for building modern web applications with Next.js 15, Shadcn UI components, and Tailwind CSS v4.
+This project demonstrates a production-quality, self-hosted authentication foundation using **Next.js App Router**, **SuperTokens Core**, and **PostgreSQL**.
 
-## 🚀 Quick Start
+## Features
 
-This template comes pre-configured with a complete development environment in a DevContainer. All Shadcn UI components are pre-installed for your convenience.
+- **Self-Hosted**: SuperTokens Core and Postgres run via Docker Compose.
+- **Headless UI**: Custom login page built with Tailwind CSS + shadcn/ui.
+- **Auth Abstraction**: All auth logic isolated in `lib/auth` for future portability.
+- **Protected Routes**: Middleware and server-side session verification.
+- **App Router**: Fully compatible with Next.js 15+ App Router.
 
-### Prerequisites
+## Prerequisites
 
-- [Visual Studio Code](https://code.visualstudio.com/)
-- [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+- Docker & Docker Compose
+- Node.js 18+
 
-### Getting Started
+## Setup
 
-1. **Open in DevContainer**: Clone this repository and open it in VS Code. When prompted, click "Reopen in Container" or use Command Palette: `Dev Containers: Reopen in Container`
+1.  **Environment Variables**:
+    Copy the example env file to `.env.local`:
 
-2. **Start Development Server**:
+    ```bash
+    cp env.local.example .env.local
+    ```
 
-   ```bash
-   pnpm dev
-   ```
+    _Note: The example file is named `env.local.example` to avoid gitignore issues. Rename it to `.env.local`._
 
-3. **Open your browser** to [http://localhost:3000](http://localhost:3000)
+2.  **Start Infrastructure**:
+    Run Docker Compose to start Postgres and SuperTokens:
 
-## ✨ What's Included
+    ```bash
+    docker compose up -d
+    ```
 
-### Framework & Tools
+    _Wait for containers to be healthy._
 
-- **Next.js 15** with App Router
-- **TypeScript** with strict mode
-- **Tailwind CSS v4** with custom CSS variables and dark mode
-- **pnpm** package manager
-- **Turbopack** for fast development builds
-- **ESLint** with Next.js configuration
+3.  **Initialize Database**:
+    The `docker/init-schemas.sql` script is automatically mounted to the Postgres container and runs on first startup. It creates the `supertokens` and `app` schemas.
 
-### UI Components
+    If you need to manually verify or reset:
 
-- **Shadcn UI** with "New York" style - all components pre-installed
-- **Radix UI** primitives for accessibility
-- **Lucide React** icons
-- **Responsive design** utilities
+    ```bash
+    docker compose exec db psql -U pm_user -d project_manager -f /docker-entrypoint-initdb.d/init-schemas.sql
+    ```
 
-### Key Features
+4.  **Install Dependencies**:
 
-- **50+ Shadcn UI components** ready to use (buttons, forms, dialogs, charts, etc.)
-- **Dark mode support** with CSS variables
-- **Form handling** with React Hook Form + Zod validation
-- **Toast notifications** with Sonner
-- **Charts** with Recharts
-- **Mobile-responsive** hooks and utilities
+    ```bash
+    pnpm install
+    ```
 
-### Development Environment
+5.  **Run Application**:
+    ```bash
+    pnpm dev
+    ```
+    Visit [http://localhost:3000](http://localhost:3000).
 
-- Pre-configured DevContainer with Node.js and TypeScript
-- VS Code extensions for React, Tailwind, ESLint, and Prettier
-- Auto-formatting and linting on save
-- Port forwarding for localhost:3000
+## Testing & Acceptance Criteria
 
-## 📁 Project Structure
+Follow these steps to verify the implementation:
 
-```
-├── app/                 # Next.js app router pages and layouts
-├── components/
-│   ├── ui/             # Pre-installed Shadcn UI components
-│   └── ...             # Custom components
-├── hooks/              # Custom React hooks (useIsMobile, etc.)
-├── lib/                # Utilities (cn function, configs)
-└── public/             # Static assets
-```
+1.  **Public Access**:
 
-## 🛠️ Available Scripts
+    - Visit `http://localhost:3000/`. You should see the Home page.
+    - Visit `http://localhost:3000/about`. You should see the About page.
 
-```bash
-pnpm dev      # Start development server with Turbopack
-pnpm build    # Build for production
-pnpm start    # Start production server
-pnpm lint     # Run ESLint
-```
+2.  **Protected Route Redirect**:
 
-## 🎨 Adding New Components
+    - Visit `http://localhost:3000/protected/dashboard`.
+    - You should be redirected to `/login`.
 
-Add new Shadcn UI components easily:
+3.  **Registration / Login**:
 
-```bash
-npx shadcn@latest add [component-name]
-```
+    - On the Login page, switch to "Sign Up" (if not default) or just enter a new email/password (SuperTokens default flow might handle both or require explicit sign up call - our custom UI has a toggle).
+    - Enter `test@example.com` / `password123`.
+    - Click "Sign Up".
+    - You should be redirected to `/protected/dashboard`.
 
-Components will be installed to `components/ui/` with proper TypeScript types and styling.
+4.  **Session Verification**:
 
-## 🚀 Deployment
+    - On the Dashboard, you should see "Welcome, test@example.com".
+    - Refresh the page. You should stay logged in.
+    - Visit `/protected/account`. You should see your User ID and metadata.
 
-This template is optimized for deployment on Vercel, but works with any platform supporting Next.js:
+5.  **Database Verification**:
 
-- **Vercel**: Connect your GitHub repo for automatic deployments
-- **Netlify**: Use the Next.js build command
-- **Railway/DigitalOcean**: Standard Node.js deployment
+    - Check that the user exists in Postgres:
 
-## 📚 Learn More
+    ```bash
+    docker compose exec db psql -U pm_user -d project_manager -c "SELECT * FROM supertokens.emailpassword_users;"
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Shadcn UI Documentation](https://ui.shadcn.com/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [Dev Containers](https://containers.dev/)
+6.  **Logout**:
+    - Click "Sign Out" on the dashboard.
+    - You should be redirected to `/login`.
+    - Try visiting `/protected/dashboard` again. You should be redirected to `/login`.
 
-## 🤝 Contributing
+## Architecture & Portability
 
-This is a template repository. Feel free to customize it for your needs!
+The authentication implementation is isolated in `lib/auth`.
+
+- **`lib/auth/index.ts`**: Main abstraction for server-side auth (getSession, getUser).
+- **`lib/auth/client.ts`**: Client-side helpers (signIn, signUp, signOut).
+- **`lib/auth/init.ts`**: Backend configuration.
+- **`middleware.ts`**: Route protection logic.
+
+### Swapping the Provider
+
+To replace SuperTokens with another provider (e.g., Auth.js, Clerk):
+
+1.  **Keep**: `app/(protected)/*`, `app/page.tsx`, `app/about/page.tsx`, `lib/db/*`.
+2.  **Replace**:
+    - Re-implement functions in `lib/auth/index.ts` to use the new provider's SDK.
+    - Update `lib/auth/client.ts` to use the new provider's client SDK.
+    - Update `middleware.ts` to use the new provider's session check.
+    - Remove `app/api/auth/[...supertokens]` and add the new provider's API route if needed.
+    - Update `docker-compose.yml` to remove SuperTokens service.
+
+## Commit History (Suggested)
+
+- `feat: initial project structure and docker-compose`
+- `feat: add supertokens backend configuration and auth abstraction`
+- `feat: add middleware for protected routes`
+- `feat: add custom login page and client auth helpers`
+- `feat: add protected dashboard and account pages`
+- `docs: add README with setup and test instructions`
