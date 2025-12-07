@@ -84,7 +84,19 @@ export async function getUserMetadata(userId: string) {
 export async function getUserFromSession() {
   const session = await getSessionOrRedirect();
   const userId = session.getUserId();
-  const user = await getUser(userId);
-  const metadata = await getUserMetadata(userId);
-  return { userId, metadata, user };
+  try {
+    const user = await getUser(userId);
+    const metadata = await getUserMetadata(userId);
+    return { userId, metadata, user };
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("No SuperTokens core available to query")
+    ) {
+      throw new Error(
+        "Authentication service is currently unavailable. Please try again later."
+      );
+    }
+    throw error;
+  }
 }
