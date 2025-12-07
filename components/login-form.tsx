@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import { signIn, signUp } from "@/lib/auth/client"
-import { useRouter } from "next/navigation"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { signIn, signUp } from "@/lib/auth/client";
+import { useRouter } from "next/navigation";
 
 export function LoginForm({
   className,
@@ -44,7 +44,7 @@ export function LoginForm({
     if (res.error) {
       setError(res.error);
     } else {
-      router.push("/protected/dashboard");
+      router.push("/dashboard");
     }
   };
 
@@ -52,9 +52,13 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>{isLogin ? "Login to your account" : "Create an account"}</CardTitle>
+          <CardTitle>
+            {isLogin ? "Login to your account" : "Create an account"}
+          </CardTitle>
           <CardDescription>
-            {isLogin ? "Enter your email below to login to your account" : "Enter your email below to create your account"}
+            {isLogin
+              ? "Enter your email below to login to your account"
+              : "Enter your email below to create your account"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -93,13 +97,17 @@ export function LoginForm({
               </Field>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Field>
-                <Button type="submit" className="w-full">{isLogin ? "Login" : "Sign Up"}</Button>
+                <Button type="submit" className="w-full">
+                  {isLogin ? "Login" : "Sign Up"}
+                </Button>
                 {/* Google Login removed as we are self-hosted only for now */}
                 {/* <Button variant="outline" type="button">
                   Login with Google
                 </Button> */}
                 <FieldDescription className="text-center">
-                  {isLogin ? "Don't have an account? " : "Already have an account? "}
+                  {isLogin
+                    ? "Don't have an account? "
+                    : "Already have an account? "}
                   <button
                     type="button"
                     className="underline hover:text-primary"
@@ -114,5 +122,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

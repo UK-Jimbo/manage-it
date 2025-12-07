@@ -15,13 +15,19 @@ export default function Home() {
 
         <div className="flex flex-wrap items-center justify-around max-w-4xl mt-6 sm:w-full">
           <Link href="/login">
-            <Button className="m-4" size="lg">Login</Button>
+            <Button className="m-4" size="lg">
+              Login
+            </Button>
           </Link>
           <Link href="/about">
-            <Button variant="outline" className="m-4" size="lg">About</Button>
+            <Button variant="outline" className="m-4" size="lg">
+              About
+            </Button>
           </Link>
-          <Link href="/protected/dashboard">
-            <Button variant="secondary" className="m-4" size="lg">Dashboard (Protected)</Button>
+          <Link href="/dashboard">
+            <Button variant="secondary" className="m-4" size="lg">
+              Dashboard (Protected)
+            </Button>
           </Link>
         </div>
       </main>

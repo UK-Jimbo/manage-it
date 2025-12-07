@@ -67,7 +67,7 @@ Follow these steps to verify the implementation:
 
 2.  **Protected Route Redirect**:
 
-    - Visit `http://localhost:3000/protected/dashboard`.
+    - Visit `http://localhost:3000/dashboard`.
     - You should be redirected to `/login`.
 
 3.  **Registration / Login**:
@@ -75,13 +75,13 @@ Follow these steps to verify the implementation:
     - On the Login page, switch to "Sign Up" (if not default) or just enter a new email/password (SuperTokens default flow might handle both or require explicit sign up call - our custom UI has a toggle).
     - Enter `test@example.com` / `password123`.
     - Click "Sign Up".
-    - You should be redirected to `/protected/dashboard`.
+    - You should be redirected to `/dashboard`.
 
 4.  **Session Verification**:
 
     - On the Dashboard, you should see "Welcome, test@example.com".
     - Refresh the page. You should stay logged in.
-    - Visit `/protected/account`. You should see your User ID and metadata.
+    - Visit `/account`. You should see your User ID and metadata.
 
 5.  **Database Verification**:
 
@@ -94,7 +94,7 @@ Follow these steps to verify the implementation:
 6.  **Logout**:
     - Click "Sign Out" on the dashboard.
     - You should be redirected to `/login`.
-    - Try visiting `/protected/dashboard` again. You should be redirected to `/login`.
+    - Try visiting `/dashboard` again. You should be redirected to `/login`.
 
 ## Architecture & Portability
 
