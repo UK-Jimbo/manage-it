@@ -19,10 +19,6 @@ export function initAuth() {
       recipeList: [
         Session.init({
           maxRetryAttemptsForSessionRefresh: 1,
-          onSessionExpired: async () => {
-            // Redirect to login when session expires
-            window.location.href = "/login";
-          },
         }),
         EmailPassword.init(),
       ],
@@ -31,6 +27,12 @@ export function initAuth() {
 }
 
 export async function signIn(email: string, password: string) {
+  // Clear any stale tokens before attempting login
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("supertokens_access_token_expiry");
+    localStorage.removeItem("supertokens_refresh_token_expiry");
+  }
+
   try {
     const response = await EmailPassword.signIn({
       formFields: [
@@ -59,6 +61,12 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signUp(email: string, password: string) {
+  // Clear any stale tokens before attempting signup
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("supertokens_access_token_expiry");
+    localStorage.removeItem("supertokens_refresh_token_expiry");
+  }
+
   try {
     const response = await EmailPassword.signUp({
       formFields: [
@@ -86,6 +94,11 @@ export async function signUp(email: string, password: string) {
 
 export async function signOut() {
   await Session.signOut();
+  // Clear local storage tokens to prevent sticky expiry issues
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("supertokens_access_token_expiry");
+    localStorage.removeItem("supertokens_refresh_token_expiry");
+  }
   window.location.href = "/login";
 }
 

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter, usePathname } from "next/navigation";
 import { TokenValidityDisplay } from "@/components/token-validity-display";
+import { InactivityTimer } from "@/components/inactivity-timer";
 
 interface UserData {
   userId: string;
@@ -231,8 +232,9 @@ export default function Dashboard() {
         </h1>
         <p className="mt-4 text-xl">This is a protected dashboard.</p>
 
-        <div className="mt-8">
+        <div className="mt-8 grid gap-4 w-full max-w-4xl md:grid-cols-2">
           <TokenValidityDisplay />
+          <InactivityTimer />
         </div>
 
         <div className="mt-8 flex gap-4">

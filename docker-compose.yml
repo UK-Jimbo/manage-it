@@ -31,8 +31,8 @@ services:
       - "3567:3567"
     environment:
       POSTGRESQL_CONNECTION_URI: "postgresql://pm_user:change_me@db:5432/project_manager"
-      ACCESS_TOKEN_VALIDITY: "60" # 60 seconds for testing
-      REFRESH_TOKEN_VALIDITY: "300" # 5 minutes for testing
+      ACCESS_TOKEN_VALIDITY: "60" # 60 seconds
+      REFRESH_TOKEN_VALIDITY: "2" # 2 minutes
       # Using the recommended test API key or leave empty for dev
       # API_KEY: "..."
 

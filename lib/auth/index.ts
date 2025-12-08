@@ -45,10 +45,20 @@ export async function getSessionForServer(): Promise<{
   };
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const session = await Session.getSession(req as any, {} as any, {
-      sessionRequired: false,
-    });
+    const session = await Session.getSession(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      req as any,
+      {
+        getHeaders: () => [],
+        setHeader: () => {},
+        setCookie: () => {},
+        getHeader: () => undefined,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      {
+        sessionRequired: false,
+      }
+    );
     return {
       session: session,
       hasToken: !!session,

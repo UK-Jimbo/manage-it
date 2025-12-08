@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import Session from "supertokens-auth-react/recipe/session";
+import { signOut } from "@/lib/auth/client";
+import { useInactivity } from "@/hooks/use-inactivity";
 
 interface SessionExpiry {
   accessTokenExpiry: number | null;
@@ -16,6 +18,7 @@ interface SessionExpiry {
 export function SessionMonitor() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const redirectingRef = useRef(false);
+  const { getLastActivity, timeoutMs } = useInactivity();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -24,10 +27,26 @@ export function SessionMonitor() {
         return;
       }
 
+      const now = Date.now();
+      const lastActivity = getLastActivity();
+      const diff = now - lastActivity;
+
+      console.log(
+        `Session Monitor: Check. Diff: ${diff}ms, Timeout: ${timeoutMs}ms`
+      );
+
+      // Check for inactivity
+      if (diff > timeoutMs) {
+        console.log("Session Monitor: User inactive, forcing logout");
+        redirectingRef.current = true;
+        await signOut();
+        return;
+      }
+
       try {
         // First check if session exists using SuperTokens client
         const sessionExists = await Session.doesSessionExist();
-        
+
         if (!sessionExists) {
           // No session, redirect to login
           redirectingRef.current = true;
@@ -54,7 +73,11 @@ export function SessionMonitor() {
 
           // Check if refresh token has expired (this is the critical check)
           // If refresh token is expired, the session is completely invalid and user must re-login
-          if (data.refreshTokenExpiry !== null && data.refreshTokenExpiry !== undefined && !isNaN(data.refreshTokenExpiry)) {
+          if (
+            data.refreshTokenExpiry !== null &&
+            data.refreshTokenExpiry !== undefined &&
+            !isNaN(data.refreshTokenExpiry)
+          ) {
             const refreshTimeLeft = data.refreshTokenExpiry - now;
             if (refreshTimeLeft <= 0) {
               // Refresh token expired - session is completely invalid, redirect to login
@@ -66,7 +89,11 @@ export function SessionMonitor() {
             // Can't determine refresh token expiry from API
             // Fallback: check if access token is expired and we have no refresh token info
             // This is a safety check in case the API doesn't return refresh token expiry
-            if (data.accessTokenExpiry !== null && data.accessTokenExpiry !== undefined && !isNaN(data.accessTokenExpiry)) {
+            if (
+              data.accessTokenExpiry !== null &&
+              data.accessTokenExpiry !== undefined &&
+              !isNaN(data.accessTokenExpiry)
+            ) {
               const timeLeft = data.accessTokenExpiry - now;
               // If access token expired and we can't verify refresh token, be conservative and redirect
               if (timeLeft <= 0) {
@@ -97,8 +124,8 @@ export function SessionMonitor() {
     // Check immediately
     checkSession();
 
-    // Then check every second to catch expiration in real-time
-    intervalRef.current = setInterval(checkSession, 1000);
+    // Then check every 30 seconds to catch expiration
+    intervalRef.current = setInterval(checkSession, 30000);
 
     return () => {
       if (intervalRef.current) {
