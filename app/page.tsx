@@ -24,9 +24,9 @@ export default function Home() {
               About
             </Button>
           </Link>
-          <Link href="/dashboard">
+          <Link href="/debug">
             <Button variant="secondary" className="m-4" size="lg">
-              Dashboard (Protected)
+              Debug (Protected)
             </Button>
           </Link>
         </div>

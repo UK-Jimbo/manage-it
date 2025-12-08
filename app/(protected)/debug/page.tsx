@@ -19,7 +19,7 @@ interface UserData {
   } | null;
 }
 
-export default function Dashboard() {
+export default function Debug() {
   const [data, setData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -191,7 +191,7 @@ export default function Dashboard() {
             {user?.emails?.[0] || (metadata.email as string) || userId}
           </span>
         </h1>
-        <p className="mt-4 text-xl">This is a protected dashboard.</p>
+        <p className="mt-4 text-xl">This is a protected debug page.</p>
 
         <div className="mt-8 grid gap-4 w-full max-w-4xl md:grid-cols-2">
           <TokenValidityDisplay />

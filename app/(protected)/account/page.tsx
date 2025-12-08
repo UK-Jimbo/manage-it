@@ -198,8 +198,8 @@ export default function Account() {
           </pre>
         </div>
 
-        <Link href="/dashboard" className="mt-8">
-          <Button variant="outline">Back to Dashboard</Button>
+        <Link href="/debug" className="mt-8">
+          <Button variant="outline">Back to Debug</Button>
         </Link>
       </main>
     </div>

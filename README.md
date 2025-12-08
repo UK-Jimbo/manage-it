@@ -69,7 +69,7 @@ Follow these steps to verify the implementation:
 
 2.  **Protected Route Redirect**:
 
-    - Visit `http://localhost:3000/dashboard`.
+    - Visit `http://localhost:3000/debug`.
     - You should be redirected to `/login`.
 
 3.  **Registration / Login**:
@@ -77,11 +77,11 @@ Follow these steps to verify the implementation:
     - On the Login page, switch to "Sign Up" (if not default) or just enter a new email/password (SuperTokens default flow might handle both or require explicit sign up call - our custom UI has a toggle).
     - Enter `test@example.com` / `password123`.
     - Click "Sign Up".
-    - You should be redirected to `/dashboard`.
+    - You should be redirected to `/debug`.
 
 4.  **Session Verification**:
 
-    - On the Dashboard, you should see "Welcome, test@example.com".
+    - On the Debug page, you should see "Welcome, test@example.com".
     - Refresh the page. You should stay logged in.
     - Visit `/account`. You should see your User ID and metadata.
 
@@ -94,9 +94,9 @@ Follow these steps to verify the implementation:
     ```
 
 6.  **Logout**:
-    - Click "Sign Out" on the dashboard.
+    - Click "Sign Out" on the debug page.
     - You should be redirected to `/login`.
-    - Try visiting `/dashboard` again. You should be redirected to `/login`.
+    - Try visiting `/debug` again. You should be redirected to `/login`.
 
 ## Architecture & Portability
 
@@ -125,5 +125,5 @@ To replace SuperTokens with another provider (e.g., Auth.js, Clerk):
 - `feat: add supertokens backend configuration and auth abstraction`
 - `feat: add middleware for protected routes`
 - `feat: add custom login page and client auth helpers`
-- `feat: add protected dashboard and account pages`
+- `feat: add protected debug and account pages`
 - `docs: add README with setup and test instructions`

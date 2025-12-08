@@ -3,5 +3,5 @@
 
 export const PROTECTED_PATHS = [
   "/account",
-  "/dashboard"
+  "/debug"
 ];

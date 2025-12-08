@@ -44,7 +44,7 @@ export function LoginForm({
     if (res.error) {
       setError(res.error);
     } else {
-      router.push("/dashboard");
+      router.push("/debug");
     }
   };
 
