@@ -16,7 +16,16 @@ export function initAuth() {
   if (typeof window !== "undefined") {
     SuperTokens.init({
       appInfo,
-      recipeList: [Session.init(), EmailPassword.init()],
+      recipeList: [
+        Session.init({
+          maxRetryAttemptsForSessionRefresh: 1,
+          onSessionExpired: async () => {
+            // Redirect to login when session expires
+            window.location.href = "/login";
+          },
+        }),
+        EmailPassword.init(),
+      ],
     });
   }
 }

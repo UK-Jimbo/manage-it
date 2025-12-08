@@ -7,6 +7,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter, usePathname } from "next/navigation";
+import { TokenValidityDisplay } from "@/components/token-validity-display";
 
 interface UserData {
   userId: string;
@@ -19,12 +20,13 @@ interface UserData {
 
 export default function Dashboard() {
   const [data, setData] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const abortControllerRef = useRef<AbortController | null>(null);
   const previousPathnameRef = useRef<string | null>(null);
   const hasCompletedFetchRef = useRef(false);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Reset state synchronously before render when pathname changes
   useLayoutEffect(() => {
@@ -33,29 +35,46 @@ export default function Dashboard() {
       previousPathnameRef.current = pathname;
       hasCompletedFetchRef.current = false;
       setData(null);
-      setLoading(true);
+      setLoading(false);
+      // Clear any existing timeout
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
     }
   }, [pathname]);
 
   useEffect(() => {
-    // Ensure loading state is set immediately
-    setLoading(true);
-    
     // Abort any previous request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
+    // Clear any existing loading timeout
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = null;
+    }
+
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
+
+    // Start a timer to show loading spinner only if fetch takes longer than 200ms
+    loadingTimeoutRef.current = setTimeout(() => {
+      if (!abortController.signal.aborted) {
+        setLoading(true);
+      }
+    }, 200);
 
     fetch("/api/user", { cache: "no-store", signal: abortController.signal })
       .then(async (res) => {
         if (res.ok) {
           return res.json();
         } else if (res.status === 401) {
-          router.push("/login");
-          return;
+          // Session expired - redirect to login immediately
+          // Don't set loading to false, just redirect
+          window.location.href = "/login";
+          return null; // Return null to prevent further processing
         } else {
           // For non-401 errors, try to get error message from response
           try {
@@ -64,13 +83,18 @@ export default function Dashboard() {
           } catch (parseError) {
             // If response isn't valid JSON, create error based on status
             if (res.status === 500) {
-              throw new Error("Server error: Unable to connect to the database. Please ensure Docker containers are running.");
+              throw new Error(
+                "Server error: Unable to connect to the database. Please ensure Docker containers are running."
+              );
             }
             throw new Error(`Server error (${res.status})`);
           }
         }
       })
       .then((d) => {
+        // Don't process if we're redirecting (d is null)
+        if (d === null) return;
+
         if (d && d.error) {
           toast.error(d.error, {
             duration: 5000,
@@ -89,12 +113,31 @@ export default function Dashboard() {
           return;
         }
 
-        let errorMessage = "Failed to load user data. Please try refreshing the page.";
-        
+        // Check if session refresh failed (token expired) or 401 error
+        if (
+          (error instanceof Error &&
+            error.message.includes("session refresh")) ||
+          (error instanceof Error &&
+            error.message.includes("Session expired")) ||
+          (error instanceof Error && error.message.includes("401"))
+        ) {
+          // Session expired - redirect to login
+          window.location.href = "/login";
+          return;
+        }
+
+        let errorMessage =
+          "Failed to load user data. Please try refreshing the page.";
+
         // Check if it's a network error (backend unavailable)
-        if (error instanceof TypeError && (error.message.includes("fetch") || error.message.includes("Failed to fetch"))) {
-          errorMessage = "Unable to connect to the server. Please ensure the backend services are running (e.g., Docker containers).";
-        } 
+        if (
+          error instanceof TypeError &&
+          (error.message.includes("fetch") ||
+            error.message.includes("Failed to fetch"))
+        ) {
+          errorMessage =
+            "Unable to connect to the server. Please ensure the backend services are running (e.g., Docker containers).";
+        }
         // Check if error message indicates database/backend issues
         else if (error instanceof Error) {
           const message = error.message.toLowerCase();
@@ -108,7 +151,7 @@ export default function Dashboard() {
             errorMessage = error.message;
           }
         }
-        
+
         toast.error(errorMessage, {
           duration: 5000,
           style: {
@@ -118,8 +161,17 @@ export default function Dashboard() {
         });
       })
       .finally(() => {
-        setLoading(false);
-        hasCompletedFetchRef.current = true;
+        // Clear the loading timeout if it hasn't fired yet
+        if (loadingTimeoutRef.current) {
+          clearTimeout(loadingTimeoutRef.current);
+          loadingTimeoutRef.current = null;
+        }
+
+        // Only set loading to false if we're not redirecting
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+          hasCompletedFetchRef.current = true;
+        }
         // Clear the ref when done
         if (abortControllerRef.current === abortController) {
           abortControllerRef.current = null;
@@ -128,14 +180,18 @@ export default function Dashboard() {
 
     return () => {
       abortController.abort();
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
       if (abortControllerRef.current === abortController) {
         abortControllerRef.current = null;
       }
     };
   }, [pathname]);
 
-  // Show loading if we're loading OR if we haven't completed a fetch yet
-  if (loading || !hasCompletedFetchRef.current) {
+  // Show loading spinner only if loading state is true (which only happens after 200ms delay)
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <Spinner className="size-8" />
@@ -143,7 +199,9 @@ export default function Dashboard() {
     );
   }
 
-  if (!data) {
+  // Only show error state if fetch has completed and there's no data
+  // If fetch hasn't completed yet, we'll wait (no spinner for fast loads, but also no error screen)
+  if (!data && hasCompletedFetchRef.current) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-2">
         <p>Unable to load user data.</p>
@@ -152,6 +210,12 @@ export default function Dashboard() {
         </Button>
       </div>
     );
+  }
+
+  // If we don't have data yet but fetch hasn't completed, return null (blank screen)
+  // This prevents showing error screen during fast navigation
+  if (!data) {
+    return null;
   }
 
   const { userId, metadata, user } = data;
@@ -166,6 +230,10 @@ export default function Dashboard() {
           </span>
         </h1>
         <p className="mt-4 text-xl">This is a protected dashboard.</p>
+
+        <div className="mt-8">
+          <TokenValidityDisplay />
+        </div>
 
         <div className="mt-8 flex gap-4">
           <Link href="/account">
