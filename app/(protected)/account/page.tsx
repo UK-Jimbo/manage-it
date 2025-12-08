@@ -70,21 +70,10 @@ export default function Account() {
           return res.json();
         } else if (res.status === 401) {
           // Session expired - redirect to login immediately
-          // Don't set loading to false, just redirect
           window.location.href = "/login";
           return null; // Return null to prevent further processing
         } else {
-          // For non-401 errors, try to get error message from response
-          try {
-            const data = await res.json();
-            throw new Error(data.error || `Server error (${res.status})`);
-          } catch (parseError) {
-            // If response isn't valid JSON, create error based on status
-            if (res.status === 500) {
-              throw new Error("Server error: Unable to connect to the database. Please ensure Docker containers are running.");
-            }
-            throw new Error(`Server error (${res.status})`);
-          }
+          throw new Error("Failed to load user data");
         }
       })
       .then((d) => {
@@ -92,7 +81,7 @@ export default function Account() {
         if (d === null) return;
         
         if (d && d.error) {
-          toast.error(d.error, {
+          toast.error("Failed to load user data", {
             duration: 5000,
             style: {
               background: "var(--error-toast-bg)",
@@ -120,27 +109,7 @@ export default function Account() {
           return;
         }
 
-        let errorMessage = "Failed to load user data. Please try refreshing the page.";
-        
-        // Check if it's a network error (backend unavailable)
-        if (error instanceof TypeError && (error.message.includes("fetch") || error.message.includes("Failed to fetch"))) {
-          errorMessage = "Unable to connect to the server. Please ensure the backend services are running (e.g., Docker containers).";
-        } 
-        // Check if error message indicates database/backend issues
-        else if (error instanceof Error) {
-          const message = error.message.toLowerCase();
-          if (
-            message.includes("unavailable") ||
-            message.includes("database connection") ||
-            message.includes("connection failed") ||
-            message.includes("server error") ||
-            message.includes("docker containers")
-          ) {
-            errorMessage = error.message;
-          }
-        }
-        
-        toast.error(errorMessage, {
+        toast.error("Failed to load user data. Please try refreshing the page.", {
           duration: 5000,
           style: {
             background: "var(--error-toast-bg)",
