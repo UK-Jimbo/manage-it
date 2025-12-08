@@ -82,7 +82,10 @@ export async function getUserMetadata(userId: string) {
 }
 
 export async function getUserFromSession() {
-  const session = await getSessionOrRedirect();
+  const { session } = await getSessionForServer();
+  if (!session) {
+    throw new Error("Session expired or invalid");
+  }
   const userId = session.getUserId();
   try {
     const user = await getUser(userId);

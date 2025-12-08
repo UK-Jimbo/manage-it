@@ -5,22 +5,30 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { useRouter } from "next/navigation";
 
 interface UserData {
   userId: string;
   metadata: Record<string, unknown>;
-  user: Record<string, unknown> | null;
+  user: {
+    emails: string[];
+    // add other fields if needed
+  } | null;
 }
 
 export default function Account() {
   const [data, setData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     fetch("/api/user")
       .then((res) => {
         if (res.ok) {
           return res.json();
+        } else if (res.status === 401) {
+          router.push("/login");
+          return;
         } else {
           throw new Error("Failed to fetch user data");
         }
@@ -51,7 +59,7 @@ export default function Account() {
         );
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
@@ -84,7 +92,8 @@ export default function Account() {
             <strong>User ID:</strong> {userId}
           </p>
           <p>
-            <strong>Email:</strong> {user?.emails?.[0] || metadata.email}
+            <strong>Email:</strong>{" "}
+            {user?.emails?.[0] || (metadata.email as string)}
           </p>
           <p>
             <strong>Metadata:</strong>

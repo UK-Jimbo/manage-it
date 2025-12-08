@@ -7,6 +7,6 @@ export async function GET() {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
-    return Response.json({ error: message }, { status: 500 });
+    return Response.json({ error: message }, { status: 401 });
   }
 }

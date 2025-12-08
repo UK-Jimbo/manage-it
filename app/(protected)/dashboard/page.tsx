@@ -6,22 +6,30 @@ import Link from "next/link";
 import { SignOutButton } from "@/components/sign-out-button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { useRouter } from "next/navigation";
 
 interface UserData {
   userId: string;
   metadata: Record<string, unknown>;
-  user: Record<string, unknown> | null;
+  user: {
+    emails: string[];
+    // add other fields if needed
+  } | null;
 }
 
 export default function Dashboard() {
   const [data, setData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     fetch("/api/user")
       .then((res) => {
         if (res.ok) {
           return res.json();
+        } else if (res.status === 401) {
+          router.push("/login");
+          return;
         } else {
           throw new Error("Failed to fetch user data");
         }
@@ -52,7 +60,7 @@ export default function Dashboard() {
         );
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
@@ -81,7 +89,7 @@ export default function Dashboard() {
         <h1 className="text-4xl font-bold">
           Welcome,{" "}
           <span className="text-blue-600">
-            {user?.emails?.[0] || metadata.email || userId}
+            {user?.emails?.[0] || (metadata.email as string) || userId}
           </span>
         </h1>
         <p className="mt-4 text-xl">This is a protected dashboard.</p>
