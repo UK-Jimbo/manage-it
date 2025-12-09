@@ -11,12 +11,11 @@ export async function GET() {
 
     // Read token validity from env vars
     const accessTokenValidity = parseInt(
-      process.env.ACCESS_TOKEN_VALIDITY || "60",
+      process.env.ACCESS_TOKEN_VALIDITY || "900",
       10
     );
     const refreshTokenValidity =
-      parseInt(process.env.REFRESH_TOKEN_VALIDITY || "300", 10) * 60; // Convert minutes to seconds
-
+      parseInt(process.env.REFRESH_TOKEN_VALIDITY || "20160", 10) * 60; // Convert minutes to seconds
     // Get session creation time
     const timeCreated = await session.getTimeCreated();
 

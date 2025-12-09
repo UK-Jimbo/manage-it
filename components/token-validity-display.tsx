@@ -96,8 +96,8 @@ export function TokenValidityDisplay() {
       .catch(() => {
         // Fallback to defaults if API fails
         setValidity({
-          accessTokenValidity: "60",
-          refreshTokenValidity: "5",
+          accessTokenValidity: "900",
+          refreshTokenValidity: "20160",
         });
         setLoading(false);
       });
@@ -235,11 +235,11 @@ export function TokenValidityDisplay() {
       }
 
       const accessTokenValidity = parseInt(
-        validity.accessTokenValidity || "60",
+        validity.accessTokenValidity || "900",
         10
       );
       const refreshTokenValidity =
-        parseInt(validity.refreshTokenValidity || "5", 10) * 60; // Convert minutes to seconds
+        parseInt(validity.refreshTokenValidity || "20160", 10) * 60; // Convert minutes to seconds
 
       // Calculate time since session creation
       const timeSinceCreation = now - timeCreated;
@@ -293,8 +293,8 @@ export function TokenValidityDisplay() {
     );
   }
 
-  const access = validity?.accessTokenValidity || "60";
-  const refresh = validity?.refreshTokenValidity || "5";
+  const access = validity?.accessTokenValidity || "900";
+  const refresh = validity?.refreshTokenValidity || "20160";
 
   return (
     <Card>
