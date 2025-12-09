@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 interface UserData {
   userId: string;
@@ -19,7 +19,6 @@ interface UserData {
 export default function Account() {
   const [data, setData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
   const abortControllerRef = useRef<AbortController | null>(null);
   const previousPathnameRef = useRef<string | null>(null);

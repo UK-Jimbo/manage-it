@@ -6,7 +6,7 @@ import Link from "next/link";
 import { SignOutButton } from "@/components/sign-out-button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { TokenValidityDisplay } from "@/components/token-validity-display";
 import { InactivityTimer } from "@/components/inactivity-timer";
 
@@ -22,7 +22,6 @@ interface UserData {
 export default function Debug() {
   const [data, setData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
   const abortControllerRef = useRef<AbortController | null>(null);
   const previousPathnameRef = useRef<string | null>(null);

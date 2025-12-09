@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
-// Inactivity timeout in milliseconds
-// Setting to 1 minute (60000ms) for testing purposes
-export const INACTIVITY_TIMEOUT_MS = 60 * 1000;
+// Inactivity timeout in seconds (converted to ms internally)
+// Read from environment variable in seconds, default to 30 minutes (1800 seconds)
+export const INACTIVITY_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_INACTIVITY_TIMEOUT || "1800", 10);
 
 export function useInactivity() {
   const lastActivityRef = useRef(Date.now());
@@ -30,6 +30,6 @@ export function useInactivity() {
 
   return {
     getLastActivity: () => lastActivityRef.current,
-    timeoutMs: INACTIVITY_TIMEOUT_MS,
+    timeout: INACTIVITY_TIMEOUT,
   };
 }

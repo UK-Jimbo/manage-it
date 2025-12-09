@@ -18,7 +18,7 @@ interface SessionExpiry {
 export function SessionMonitor() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const redirectingRef = useRef(false);
-  const { getLastActivity, timeoutMs } = useInactivity();
+  const { getLastActivity, timeout } = useInactivity();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -32,11 +32,11 @@ export function SessionMonitor() {
       const diff = now - lastActivity;
 
       console.log(
-        `Session Monitor: Check. Diff: ${diff}ms, Timeout: ${timeoutMs}ms`
+        `Session Monitor: Check. Diff: ${diff}ms, Timeout: ${timeout}s`
       );
 
-      // Check for inactivity
-      if (diff > timeoutMs) {
+      // Check for inactivity (only if timeout is enabled)
+      if (timeout > 0 && diff > timeout * 1000) {
         console.log("Session Monitor: User inactive, forcing logout");
         redirectingRef.current = true;
         await signOut();
@@ -104,7 +104,7 @@ export function SessionMonitor() {
             }
           }
         }
-      } catch (error) {
+      } catch {
         // If there's an error checking the session, it might be expired
         // Try to verify with SuperTokens client
         try {
@@ -132,7 +132,7 @@ export function SessionMonitor() {
         clearInterval(intervalRef.current);
       }
     };
-  }, []);
+  }, [getLastActivity, timeout]);
 
   // This component doesn't render anything
   return null;
