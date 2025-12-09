@@ -14,10 +14,8 @@ export async function GET() {
       process.env.ACCESS_TOKEN_VALIDITY || "60",
       10
     );
-    const refreshTokenValidity = parseInt(
-      process.env.REFRESH_TOKEN_VALIDITY || "300",
-      10
-    );
+    const refreshTokenValidity =
+      parseInt(process.env.REFRESH_TOKEN_VALIDITY || "300", 10) * 60; // Convert minutes to seconds
 
     // Get session creation time
     const timeCreated = await session.getTimeCreated();
@@ -64,7 +62,7 @@ export async function GET() {
       validRefreshTokenExpiry = refreshTokenExpiry;
     } else {
       // Fallback: current time + validity
-      validRefreshTokenExpiry = now + refreshTokenValidity;
+      validRefreshTokenExpiry = now + refreshTokenValidity * 60;
     }
 
     const validTimeCreated = !isNaN(timeCreatedSeconds)

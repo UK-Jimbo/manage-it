@@ -97,7 +97,7 @@ export function TokenValidityDisplay() {
         // Fallback to defaults if API fails
         setValidity({
           accessTokenValidity: "60",
-          refreshTokenValidity: "300",
+          refreshTokenValidity: "5",
         });
         setLoading(false);
       });
@@ -238,10 +238,8 @@ export function TokenValidityDisplay() {
         validity.accessTokenValidity || "60",
         10
       );
-      const refreshTokenValidity = parseInt(
-        validity.refreshTokenValidity || "300",
-        10
-      );
+      const refreshTokenValidity =
+        parseInt(validity.refreshTokenValidity || "5", 10) * 60; // Convert minutes to seconds
 
       // Calculate time since session creation
       const timeSinceCreation = now - timeCreated;
@@ -296,7 +294,7 @@ export function TokenValidityDisplay() {
   }
 
   const access = validity?.accessTokenValidity || "60";
-  const refresh = validity?.refreshTokenValidity || "300";
+  const refresh = validity?.refreshTokenValidity || "5";
 
   return (
     <Card>
@@ -326,8 +324,7 @@ export function TokenValidityDisplay() {
         </div>
         <div>
           <p className="text-sm text-muted-foreground">
-            Refresh Token Validity: {refresh} seconds (
-            {Math.floor(parseInt(refresh) / 60)} minutes)
+            Refresh Token Validity: {refresh} minutes
           </p>
           {hasSession && refreshTokenTimeLeft !== null ? (
             <p

@@ -5,10 +5,12 @@ services:
   db:
     image: postgres:15-alpine
     restart: always
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: pm_user
-      POSTGRES_PASSWORD: change_me
-      POSTGRES_DB: project_manager
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
@@ -27,12 +29,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    env_file:
+      - .env
     ports:
       - "3567:3567"
     environment:
-      POSTGRESQL_CONNECTION_URI: "postgresql://pm_user:change_me@db:5432/project_manager"
-      ACCESS_TOKEN_VALIDITY: "60" # 60 seconds
-      REFRESH_TOKEN_VALIDITY: "2" # 2 minutes
+      POSTGRESQL_CONNECTION_URI: ${POSTGRESQL_CONNECTION_URI}
+      ACCESS_TOKEN_VALIDITY: ${ACCESS_TOKEN_VALIDITY}
+      REFRESH_TOKEN_VALIDITY: ${REFRESH_TOKEN_VALIDITY}
       # Using the recommended test API key or leave empty for dev
       # API_KEY: "..."
 
