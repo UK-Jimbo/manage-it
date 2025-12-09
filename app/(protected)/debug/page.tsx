@@ -113,13 +113,16 @@ export default function Debug() {
           return;
         }
 
-        toast.error("Failed to load user data. Please try refreshing the page.", {
-          duration: 5000,
-          style: {
-            background: "var(--error-toast-bg)",
-            color: "var(--error-toast-color)",
-          },
-        });
+        toast.error(
+          "Failed to load user data. Please try refreshing the page.",
+          {
+            duration: 5000,
+            style: {
+              background: "var(--error-toast-bg)",
+              color: "var(--error-toast-color)",
+            },
+          }
+        );
       })
       .finally(() => {
         // Clear the loading timeout if it hasn't fired yet

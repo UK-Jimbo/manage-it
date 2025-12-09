@@ -78,7 +78,7 @@ export default function Account() {
       .then((d) => {
         // Don't process if we're redirecting (d is null)
         if (d === null) return;
-        
+
         if (d && d.error) {
           toast.error("Failed to load user data", {
             duration: 5000,
@@ -99,8 +99,10 @@ export default function Account() {
 
         // Check if session refresh failed (token expired) or 401 error
         if (
-          (error instanceof Error && error.message.includes("session refresh")) ||
-          (error instanceof Error && error.message.includes("Session expired")) ||
+          (error instanceof Error &&
+            error.message.includes("session refresh")) ||
+          (error instanceof Error &&
+            error.message.includes("Session expired")) ||
           (error instanceof Error && error.message.includes("401"))
         ) {
           // Session expired - redirect to login
@@ -108,13 +110,16 @@ export default function Account() {
           return;
         }
 
-        toast.error("Failed to load user data. Please try refreshing the page.", {
-          duration: 5000,
-          style: {
-            background: "var(--error-toast-bg)",
-            color: "var(--error-toast-color)",
-          },
-        });
+        toast.error(
+          "Failed to load user data. Please try refreshing the page.",
+          {
+            duration: 5000,
+            style: {
+              background: "var(--error-toast-bg)",
+              color: "var(--error-toast-color)",
+            },
+          }
+        );
       })
       .finally(() => {
         // Clear the loading timeout if it hasn't fired yet
@@ -122,7 +127,7 @@ export default function Account() {
           clearTimeout(loadingTimeoutRef.current);
           loadingTimeoutRef.current = null;
         }
-        
+
         // Only set loading to false if we're not redirecting
         if (!abortController.signal.aborted) {
           setLoading(false);
