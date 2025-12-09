@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Session from "supertokens-auth-react/recipe/session";
 
@@ -48,40 +48,24 @@ export function TokenValidityDisplay() {
   const [hasSession, setHasSession] = useState(false);
 
   // Store session creation time (source of truth from SuperTokens)
-  const sessionCreatedRef = useRef<number | null>(null);
-
-  // Store access token expiry
-  const initialAccessTokenExpiry =
-    typeof window !== "undefined"
-      ? loadNumberFromStorage(STORAGE_KEY_ACCESS_TOKEN_EXPIRY)
-      : null;
-  const accessTokenExpiryRef = useRef<number | null>(initialAccessTokenExpiry);
+  const [sessionCreated, setSessionCreated] = useState<number | null>(null);
 
   // Store refresh token expiry
-  const initialRefreshTokenExpiry =
+  const [refreshTokenExpiry, setRefreshTokenExpiry] = useState<number | null>(
     typeof window !== "undefined"
       ? loadNumberFromStorage(STORAGE_KEY_REFRESH_TOKEN_EXPIRY)
-      : null;
-  const refreshTokenExpiryRef = useRef<number | null>(
-    initialRefreshTokenExpiry
+      : null
   );
 
   // Load from localStorage on client mount (handles SSR case)
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const storedAccessExpiry = loadNumberFromStorage(
-      STORAGE_KEY_ACCESS_TOKEN_EXPIRY
-    );
-    if (storedAccessExpiry !== null) {
-      accessTokenExpiryRef.current = storedAccessExpiry;
-    }
-
     const storedRefreshExpiry = loadNumberFromStorage(
       STORAGE_KEY_REFRESH_TOKEN_EXPIRY
     );
     if (storedRefreshExpiry !== null) {
-      refreshTokenExpiryRef.current = storedRefreshExpiry;
+      setRefreshTokenExpiry(storedRefreshExpiry);
     }
   }, []);
 
@@ -149,27 +133,18 @@ export function TokenValidityDisplay() {
 
           setHasSession(true); // Store session creation time
           if (data.timeCreated && data.timeCreated > 0) {
-            sessionCreatedRef.current = data.timeCreated;
-          }
-
-          // Store access token expiry
-          if (data.accessTokenExpiry && data.accessTokenExpiry > 0) {
-            accessTokenExpiryRef.current = data.accessTokenExpiry;
-            saveToStorage(
-              STORAGE_KEY_ACCESS_TOKEN_EXPIRY,
-              data.accessTokenExpiry
-            );
+            setSessionCreated(data.timeCreated);
           }
 
           // Store refresh token expiry
           if (data.refreshTokenExpiry && data.refreshTokenExpiry > 0) {
-            const currentStored = refreshTokenExpiryRef.current;
+            const currentStored = refreshTokenExpiry;
             const now = Math.floor(Date.now() / 1000);
 
             // Only update if we don't have a stored value, or if the stored value is in the past
             // This prevents the timer from resetting on page refresh if the session was extended
             if (currentStored === null || currentStored <= now) {
-              refreshTokenExpiryRef.current = data.refreshTokenExpiry;
+              setRefreshTokenExpiry(data.refreshTokenExpiry);
               saveToStorage(
                 STORAGE_KEY_REFRESH_TOKEN_EXPIRY,
                 data.refreshTokenExpiry
@@ -180,10 +155,8 @@ export function TokenValidityDisplay() {
           // No session confirmed by API - clear state
           if (!isActive) return;
           setHasSession(false);
-          sessionCreatedRef.current = null;
-          accessTokenExpiryRef.current = null;
-          refreshTokenExpiryRef.current = null;
-          saveToStorage(STORAGE_KEY_ACCESS_TOKEN_EXPIRY, null);
+          setSessionCreated(null);
+          setRefreshTokenExpiry(null);
           saveToStorage(STORAGE_KEY_REFRESH_TOKEN_EXPIRY, null);
         }
       } catch (error) {
@@ -205,7 +178,7 @@ export function TokenValidityDisplay() {
         clearInterval(healthCheckInterval);
       }
     };
-  }, [validity]);
+  }, [validity, refreshTokenExpiry]);
 
   // Calculate time left
   const [accessTokenTimeLeft, setAccessTokenTimeLeft] = useState<number | null>(
@@ -224,9 +197,8 @@ export function TokenValidityDisplay() {
 
     const updateTimeLeft = () => {
       const now = Math.floor(Date.now() / 1000);
-      const timeCreated = sessionCreatedRef.current;
-      const accessTokenExpiry = accessTokenExpiryRef.current;
-      const refreshTokenExpiry = refreshTokenExpiryRef.current;
+      const timeCreated = sessionCreated;
+      const currentRefreshTokenExpiry = refreshTokenExpiry;
 
       if (timeCreated === null) {
         setAccessTokenTimeLeft(null);
@@ -244,25 +216,23 @@ export function TokenValidityDisplay() {
       // Calculate time since session creation
       const timeSinceCreation = now - timeCreated;
 
-      // For access token: use actual expiry if available, else fallback to calculation
+      // For access token: always use calculation to avoid reset on token refresh
       let accessTokenTimeLeftInCycle = 0;
-      if (accessTokenExpiry !== null && accessTokenExpiry > now) {
-        accessTokenTimeLeftInCycle = accessTokenExpiry - now;
-      } else if (accessTokenExpiry !== null && accessTokenExpiry <= now) {
-        // Token expired or about to expire - wait for refresh or assume 0
-        accessTokenTimeLeftInCycle = 0;
-      } else {
-        // Fallback to calculation
-        accessTokenTimeLeftInCycle =
-          accessTokenValidity - (timeSinceCreation % accessTokenValidity);
-      }
+      accessTokenTimeLeftInCycle =
+      accessTokenValidity - (timeSinceCreation % accessTokenValidity);
       setAccessTokenTimeLeft(Math.max(0, accessTokenTimeLeftInCycle));
 
       // For refresh token: use actual expiry if available, else fallback to calculation
       let refreshTokenTimeLeftVal = 0;
-      if (refreshTokenExpiry !== null && refreshTokenExpiry > now) {
-        refreshTokenTimeLeftVal = refreshTokenExpiry - now;
-      } else if (refreshTokenExpiry !== null && refreshTokenExpiry <= now) {
+      if (
+        currentRefreshTokenExpiry !== null &&
+        currentRefreshTokenExpiry > now
+      ) {
+        refreshTokenTimeLeftVal = currentRefreshTokenExpiry - now;
+      } else if (
+        currentRefreshTokenExpiry !== null &&
+        currentRefreshTokenExpiry <= now
+      ) {
         refreshTokenTimeLeftVal = 0;
       } else {
         // Fallback to calculation
@@ -278,7 +248,7 @@ export function TokenValidityDisplay() {
     const interval = setInterval(updateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [hasSession, validity]);
+  }, [hasSession, validity, sessionCreated, refreshTokenExpiry]);
 
   if (loading) {
     return (
